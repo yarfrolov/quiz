@@ -1,181 +1,271 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Квиз: Выбор метода исследования для продакт-менеджера</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; padding: 0 1em; }
-    h1 { color: #2c3e50; }
-    label { display: block; margin: 1em 0 0.3em; font-weight: bold; }
-    select, button { width: 100%; padding: 0.4em; font-size: 1em; }
-    .result { background: #ecf0f1; padding: 1em; border-radius: 6px; margin-top: 1.5em; }
-    a { color: #2980b9; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Выбор метода UX-исследования</title>
+
+<!-- Инлайновые стили -->
+<style>
+/* Базовые переменные */
+:root{
+  --accent:#005bff;
+  --bg:#f4f6fa;
+  --text:#222;
+  --card:#fff;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --accent:#3d7cff;
+    --bg:#111;
+    --text:#f5f7fa;
+    --card:#1e1e1e;
+  }
+}
+
+/* Общие правила */
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:var(--bg);color:var(--text);}
+.container{max-width:820px;margin:0 auto;padding:40px 24px;}
+h2{margin-top:0;font-size:26px;line-height:1.3;}
+label{display:block;margin:10px 0;cursor:pointer;line-height:1.4;}
+input[type=radio]{margin-right:8px;cursor:pointer;}
+.btn{
+  display:inline-block;margin-top:24px;padding:12px 28px;border:none;border-radius:4px;
+  background:var(--accent);color:#fff;font-size:16px;cursor:pointer;transition:opacity .3s;
+}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.progress{height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-bottom:32px;}
+.bar{height:100%;width:0;background:var(--accent);transition:width .4s ease;}
+.screen{display:none;animation:fade .5s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.result-card{
+  background:var(--card);border-radius:6px;padding:24px;margin:16px 0;
+  box-shadow:0 2px 6px rgba(0,0,0,.07);
+}
+.result-card a{color:var(--accent);text-decoration:none;}
+@media(max-width:480px){
+  .btn{width:100%;font-size:18px;padding:14px 0;}
+}
+</style>
 </head>
 <body>
-  <h1>Квиз: Выбор метода исследования для продакт-менеджера</h1>
-  <form id="quizForm">
-    <label for="goal">1. Какова основная цель исследования? (можно выбрать несколько)</label>
-    <select id="goal" multiple required>
-      <option value="Понять причины поведения">Понять причины поведения / найти идеи</option>
-      <option value="Сравнить варианты">Сравнить варианты / оценить решения</option>
-      <option value="Изучить рынок">Изучить рынок / конкурентов</option>
-      <option value="Измерить уровень">Измерить текущий уровень (удовлетворённость, метрики)</option>
-    </select>
 
-    <label for="focus">2. На чем фокусируется исследование? (можно выбрать несколько)</label>
-    <select id="focus" multiple required>
-      <option value="Функции">Функции, пользовательские задачи, интерфейс</option>
-      <option value="Понимание пользователей">Понимание пользователей: мотивации, боли</option>
-      <option value="Рынок">Рынок, бренд, конкуренты</option>
-    </select>
+<div class="container">
+  <div class="progress"><div id="bar" class="bar"></div></div>
+  <div id="screens"></div>
+</div>
 
-    <label for="stage">3. На какой стадии продукт? (можно выбрать несколько)</label>
-    <select id="stage" multiple required>
-      <option value="Идея">Идея / концепт</option>
-      <option value="Прототип">Прототип / MVP</option>
-      <option value="Запущенный продукт">Запущенный продукт</option>
-      <option value="Зрелый продукт">Зрелый продукт</option>
-    </select>
-
-    <label for="dataType">4. Какие данные важны? (можно выбрать несколько)</label>
-    <select id="dataType" multiple required>
-      <option value="Количественные">Количественные (метрики, статистика)</option>
-      <option value="Качественные">Качественные (инсайты, поведение)</option>
-      <option value="Пока не знаю">Пока не знаю</option>
-    </select>
-
-    <label for="speed">5. Как быстро нужны результаты? (можно выбрать несколько)</label>
-    <select id="speed" multiple required>
-      <option value="Очень срочно">Очень срочно (дни)</option>
-      <option value="Быстро">В течение нескольких недель</option>
-      <option value="Можно ждать">Можно подождать (месяцы)</option>
-    </select>
-
-    <label for="budget">6. Бюджет для исследования? (можно выбрать несколько)</label>
-    <select id="budget" multiple required>
-      <option value="Минимальный">Минимальный (внутренние ресурсы)</option>
-      <option value="Средний">Средний (внешние респонденты)</option>
-      <option value="Высокий">Высокий (агентство, большие исследования)</option>
-    </select>
-
-    <button type="submit" style="margin-top:1em;">Получить рекомендации</button>
-  </form>
-
-  <div id="result" class="result" style="display:none;"></div>
-
+<!-- Чистый JS -->
 <script>
-// База методов с их параметрами и описаниями
-const researchMethods = [
-  {
-    name: "Глубинное интервью",
-    goal: ["Понять причины поведения", "Изучить рынок"],
-    focus: ["Понимание пользователей"],
-    stage: ["Идея", "Прототип", "Запущенный продукт"],
-    dataType: ["Качественные"],
-    speed: ["Быстро", "Можно ждать"],
-    budget: ["Средний", "Высокий"],
-    description: "Помогает глубоко понять мотивации, потребности и поведение пользователей.",
-    link: "https://usabilitylab.ru/uxmethods/glubinnoe-intervyu-in-depth-interview/"
-  },
-  {
-    name: "A/B тестирование",
-    goal: ["Сравнить варианты", "Измерить уровень"],
-    focus: ["Функции"],
-    stage: ["Запущенный продукт", "Зрелый продукт"],
-    dataType: ["Количественные"],
-    speed: ["Очень срочно", "Быстро"],
-    budget: ["Средний", "Высокий"],
-    description: "Сравнение вариантов продукта с целью выбрать оптимальный на основе метрик.",
-    link: "https://usabilitylab.ru/uxmethods/ab-testing-a-b-test/"
-  },
-  {
-    name: "Опросы",
-    goal: ["Измерить уровень", "Изучить рынок"],
-    focus: ["Понимание пользователей", "Рынок"],
-    stage: ["Прототип", "Запущенный продукт", "Зрелый продукт"],
-    dataType: ["Количественные"],
-    speed: ["Очень срочно", "Быстро", "Можно ждать"],
-    budget: ["Минимальный", "Средний", "Высокий"],
-    description: "Сбор статистических данных о пользователях, их предпочтениях и опыте.",
-    link: "https://usabilitylab.ru/uxmethods/surveys/"
-  },
-  {
-    name: "Фокус-группы",
-    goal: ["Понять причины поведения", "Изучить рынок"],
-    focus: ["Понимание пользователей", "Рынок"],
-    stage: ["Идея", "Прототип", "Запущенный продукт"],
-    dataType: ["Качественные"],
-    speed: ["Быстро", "Можно ждать"],
-    budget: ["Средний", "Высокий"],
-    description: "Групповое обсуждение для выявления мнений и идей пользователей.",
-    link: "https://usabilitylab.ru/uxmethods/focus-groups/"
-  },
-  {
-    name: "Экспертная оценка удобства",
-    goal: ["Понять причины поведения", "Измерить уровень"],
-    focus: ["Функции"],
-    stage: ["Запущенный продукт", "Зрелый продукт"],
-    dataType: ["Пока не знаю"],
-    speed: ["Очень срочно", "Быстро"],
-    budget: ["Минимальный", "Средний"],
-    description: "Оценка продукта экспертами для выявления проблем удобства интерфейса.",
-    link: "https://usabilitylab.ru/uxmethods/ekspertnaya-oczenka-udobstva-heuristic-evaluation-expert-review/"
-  },
-  // Добавляйте свои методы сюда по такому же шаблону
+// ---------- 1. ДАННЫЕ ---------- //
+const questions=[
+  {id:'goal',text:'Какова главная цель исследования?',options:[
+    'Понять причины поведения',
+    'Найти новые идеи/проблемы',
+    'Сравнить варианты решения/дизайна',
+    'Изучить рынок/конкурентов',
+    'Проверить востребованность новой идеи/фичи',
+    'Измерить текущий уровень метрик',
+    'Улучшить удобство элемента',
+    'Понять, кто наши пользователи и чего они хотят']},
+  {id:'focus',text:'На чём фокусируется исследование?',options:[
+    'Понимание пользователей',
+    'Рынок/Конкуренты/Бренд',
+    'Фичи/Пользовательские задачи/Пути',
+    'UI/UX интерфейса']},
+  {id:'stage',text:'Стадия продукта или фичи?',options:[
+    'Только идея',
+    'Ранняя разработка/Прототип',
+    'Запущенный продукт',
+    'Зрелый продукт',
+    'Не применимо']},
+  {id:'data',text:'Какие данные критичны?',options:[
+    'Качественные',
+    'Количественные',
+    'И то, и другое равно важны']},
+  {id:'speed',text:'Как быстро нужны результаты?',options:[
+    'Очень срочно (несколько дней)',
+    'Относительно быстро (1-3 недели)',
+    'Есть время (1-2 месяца)',
+    'Можно долго (2+ месяцев)']},
+  {id:'budget',text:'Бюджет/ресурсы?',options:[
+    'Минимум',
+    'Средний',
+    'Высокий',
+    'Пока не ясно']}
 ];
 
-// Функция для получения выбранных значений из select с учетом multiple
-function getSelectedOptions(select) {
-  return Array.from(select.selectedOptions).map(opt => opt.value);
-}
+// 20 методов; при необходимости расширяйте массив
+const methods=[
+  {name:'Экспертная оценка удобства',url:'https://usabilitylab.ru/uxmethods/ekspertnaya-oczenka-udobstva-heuristic-evaluation-expert-review/',
+   tags:['Понять причины поведения','Найти новые идеи/проблемы','UI/UX интерфейса',
+         'Запущенный продукт','Зрелый продукт','Качественные',
+         'Очень срочно (несколько дней)','Минимум']},
+  {name:'Анализ рынка',url:'https://usabilitylab.ru/uxmethods/konkurentnyj-analiz-konkurentnyi-analiz-competitive-comparative-analysis/',
+   tags:['Изучить рынок/конкурентов','Рынок/Конкуренты/Бренд','Не применимо',
+         'Количественные','Очень срочно (несколько дней)','Минимум']},
+  {name:'Анализ конкурентов',url:'https://usabilitylab.ru/uxmethods/konkurentnyj-analiz-konkurentnyi-analiz-competitive-comparative-analysis/',
+   tags:['Изучить рынок/конкурентов','Сравнить варианты решения/дизайна',
+         'Рынок/Конкуренты/Бренд','Только идея','Качественные',
+         'Очень срочно (несколько дней)','Минимум']},
+  {name:'Веб-аналитика',url:'https://usabilitylab.ru/uxmethods/web-analytics/',
+   tags:['Понять причины поведения','Фичи/Пользовательские задачи/Пути',
+         'Зрелый продукт','Количественные','Очень срочно (несколько дней)','Минимум']},
+  {name:'Анализ обратной связи',url:'https://usabilitylab.ru/uxmethods/customer-feedback-voice-of-the-customer/',
+   tags:['Понять причины поведения','Измерить текущий уровень метрик',
+         'Фичи/Пользовательские задачи/Пути','Запущенный продукт','Зрелый продукт',
+         'Качественные','Относительно быстро (1-3 недели)','Минимум']},
+  {name:'Фокус-группа',url:'https://usabilitylab.ru/uxmethods/fokus-gruppy-focus-group/',
+   tags:['Понять причины поведения','Найти новые идеи/проблемы',
+         'Проверить востребованность новой идеи/фичи','Понимание пользователей',
+         'Только идея','Ранняя разработка/Прототип','Запущенный продукт','Зрелый продукт',
+         'Качественные','Есть время (1-2 месяца)','Средний','Высокий']},
+  {name:'Массовый опрос',url:'https://usabilitylab.ru/uxmethods/massovyj-opros-i-anketirovanie-surveys-and-questionnaires/',
+   tags:['Измерить текущий уровень метрик','Понять, кто наши пользователи и чего они хотят',
+         'Фичи/Пользовательские задачи/Пути','Рынок/Конкуренты/Бренд','UI/UX интерфейса',
+         'Запущенный продукт','Зрелый продукт','Количественные',
+         'Относительно быстро (1-3 недели)','Средний','Высокий']},
+  {name:'Контекстное интервью',url:'https://usabilitylab.ru/uxmethods/kontekstnoe-intervyu-contextual-inquiry/',
+   tags:['Понять причины поведения','Найти новые идеи/проблемы',
+         'Фичи/Пользовательские задачи/Пути','Понимание пользователей',
+         'UI/UX интерфейса','Запущенный продукт','Зрелый продукт',
+         'Качественные','Есть время (1-2 месяца)','Минимум','Средний']},
+  {name:'Решенческое интервью',url:'https://usabilitylab.ru/uxmethods/solution-interview/',
+   tags:['Сравнить варианты решения/дизайна','Проверить востребованность новой идеи/фичи',
+         'Найти новые идеи/проблемы','Понимание пользователей','UI/UX интерфейса',
+         'Фичи/Пользовательские задачи/Пути','Только идея','Ранняя разработка/Прототип',
+         'Качественные','Есть время (1-2 месяца)','Минимум','Средний','Высокий']},
+  {name:'Интервью в переписке',url:'https://usabilitylab.ru/uxmethods/chat-based-interview/',
+   tags:['Проверить востребованность новой идеи/фичи','Найти новые идеи/проблемы',
+         'UI/UX интерфейса','Фичи/Пользовательские задачи/Пути',
+         'Только идея','Ранняя разработка/Прототип','Качественные',
+         'Есть время (1-2 месяца)','Средний']},
+  {name:'Глубинное интервью',url:'https://usabilitylab.ru/uxmethods/glubinnoe-intervyu-in-depth-interview/',
+   tags:['Понять причины поведения','Понять, кто наши пользователи и чего они хотят',
+         'Найти новые идеи/проблемы','Понимание пользователей',
+         'Фичи/Пользовательские задачи/Пути','Только идея','Запущенный продукт',
+         'Качественные','Есть время (1-2 месяца)','Средний','Высокий']},
+  {name:'Модерируемое UT',url:'https://usabilitylab.ru/uxmethods/moderiruemoe-uzabiliti-testirovanie-moderated-usability-testing/',
+   tags:['Улучшить удобство элемента','Понять причины поведения',
+         'Найти новые идеи/проблемы','UI/UX интерфейса',
+         'Фичи/Пользовательские задачи/Пути','Ранняя разработка/Прототип',
+         'Запущенный продукт','Зрелый продукт','Качественные',
+         'Есть время (1-2 месяца)','Средний','Высокий']},
+  {name:'Немодерируемое UT',url:'https://usabilitylab.ru/uxmethods/nemoderiruemoe-yuzabiliti-testirovanie-unmoderated-usability-testing/',
+   tags:['Улучшить удобство элемента','Понять причины поведения',
+         'Найти новые идеи/проблемы','UI/UX интерфейса',
+         'Фичи/Пользовательские задачи/Пути','Ранняя разработка/Прототип',
+         'Запущенный продукт','Зрелый продукт','Количественные',
+         'Относительно быстро (1-3 недели)','Средний','Высокий']},
+  {name:'A/B-тестирование',url:'https://usabilitylab.ru/uxmethods/a-b-testing-split-testirovanie/',
+   tags:['Сравнить варианты решения/дизайна','Улучшить удобство элемента',
+         'UI/UX интерфейса','Запущенный продукт','Зрелый продукт',
+         'Количественные','Относительно быстро (1-3 недели)','Средний']},
+  {name:'Трендвотчинг',url:'https://usabilitylab.ru/uxmethods/trendwatching/',
+   tags:['Изучить рынок/конкурентов','Рынок/Конкуренты/Бренд','Только идея',
+         'Запущенный продукт','Зрелый продукт','И то, и другое равно важны',
+         'Относительно быстро (1-3 недели)']},
+  {name:'Дневниковое исследование',url:'https://usabilitylab.ru/uxmethods/dnevnikovoe-issledovanie-diaty-study/',
+   tags:['Понять причины поведения','Понять, кто наши пользователи и чего они хотят',
+         'Найти новые идеи/проблемы','Фичи/Пользовательские задачи/Пути',
+         'UI/UX интерфейса','Понимание пользователей',
+         'Запущенный продукт','Зрелый продукт','Качественные',
+         'Можно долго (2+ месяцев)','Средний','Высокий']},
+  {name:'Включённое наблюдение',url:'https://usabilitylab.ru/uxmethods/vklyuchennoe-nablyudenie-participant-observation/',
+   tags:['Найти новые идеи/проблемы','Фичи/Пользовательские задачи/Пути',
+         'UI/UX интерфейса','Понимание пользователей','Только идея',
+         'Ранняя разработка/Прототип','Запущенный продукт','Зрелый продукт',
+         'Качественные','Можно долго (2+ месяцев)','Высокий']},
+  {name:'Невключённое наблюдение',url:'https://usabilitylab.ru/uxmethods/nevklyuchennoe-nablyudenie-non-participant-observation/',
+   tags:['Найти новые идеи/проблемы','Фичи/Пользовательские задачи/Пути',
+         'UI/UX интерфейса','Понимание пользователей','Только идея',
+         'Ранняя разработка/Прототип','Запущенный продукт','Зрелый продукт',
+         'Качественные','Можно долго (2+ месяцев)','Высокий']},
+  {name:'Метод Кано',url:'https://usabilitylab.ru/uxmethods/kano-model/',
+   tags:['Сравнить варианты решения/дизайна','UI/UX интерфейса',
+         'И то, и другое равно важны','Относительно быстро (1-3 недели)','Минимум']},
+  {name:'Карточная сортировка',url:'https://usabilitylab.ru/uxmethods/otkrytaya-kartochnaya-sortirovka-open-card-sorting/',
+   tags:['Улучшить удобство элемента','Найти новые идеи/проблемы',
+         'UI/UX интерфейса','Зрелый продукт','Ранняя разработка/Прототип',
+         'И то, и другое равно важны','Относительно быстро (1-3 недели)',
+         'Минимум','Средний','Высокий']}
+];
 
-// Проверка пересечения массивов (есть ли хотя бы один общий элемент)
-function arraysIntersect(arr1, arr2) {
-  return arr1.some(item => arr2.includes(item));
-}
-
-document.getElementById('quizForm').addEventListener('submit', function(event) {
-  event.preventDefault();
-
-  // Считываем выбранные ответы
-  const goal = getSelectedOptions(document.getElementById('goal'));
-  const focus = getSelectedOptions(document.getElementById('focus'));
-  const stage = getSelectedOptions(document.getElementById('stage'));
-  const dataType = getSelectedOptions(document.getElementById('dataType'));
-  const speed = getSelectedOptions(document.getElementById('speed'));
-  const budget = getSelectedOptions(document.getElementById('budget'));
-
-  // Фильтруем методы, где есть пересечения по всем параметрам
-  // Особенность: метод с dataType "Пока не знаю" считается подходящим для любого выбора dataType
-  const matchedMethods = researchMethods.filter(method => {
-    const goalMatch = arraysIntersect(method.goal, goal);
-    const focusMatch = arraysIntersect(method.focus, focus);
-    const stageMatch = arraysIntersect(method.stage, stage);
-    const speedMatch = arraysIntersect(method.speed, speed);
-    const budgetMatch = arraysIntersect(method.budget, budget);
-    const dataTypeMatch = method.dataType.includes("Пока не знаю") || arraysIntersect(method.dataType, dataType);
-
-    return goalMatch && focusMatch && stageMatch && speedMatch && budgetMatch && dataTypeMatch;
+// ---------- 2. РЕНДЕР ЭКРАНОВ ---------- //
+const screensDiv=document.getElementById('screens');
+questions.forEach((q,i)=>{
+  const screen=document.createElement('div');
+  screen.className=`screen${i===0?' active':''}`;
+  screen.innerHTML=`<h2>${q.text}</h2>`;
+  q.options.forEach(opt=>{
+    screen.insertAdjacentHTML('beforeend',
+      `<label><input type="radio" name="${q.id}" value="${opt}"> ${opt}</label>`);
   });
-
-  const resultDiv = document.getElementById('result');
-
-  if (matchedMethods.length === 0) {
-    resultDiv.innerHTML = `<p>Подходящие методы не найдены. Попробуйте изменить параметры для получения рекомендаций.</p>`;
-  } else {
-    let resultHTML = `<h2>Рекомендуемые методы исследования:</h2><ul>`;
-    matchedMethods.forEach(method => {
-      resultHTML += `<li><strong>${method.name}</strong>: ${method.description} <a href="${method.link}" target="_blank" rel="noopener noreferrer">Подробнее</a></li>`;
-    });
-    resultHTML += `</ul>`;
-    resultDiv.innerHTML = resultHTML;
-  }
-  resultDiv.style.display = "block";
-  // Прокрутить страницу вниз к результату
-  resultDiv.scrollIntoView({ behavior: 'smooth' });
+  const btn=document.createElement('button');
+  btn.textContent=i===questions.length-1?'Показать результат':'Далее';
+  btn.className='btn';btn.disabled=true;
+  btn.addEventListener('click',()=>nextScreen(i));
+  screen.appendChild(btn);
+  screensDiv.appendChild(screen);
 });
+
+// Активировать кнопку, когда выбран ответ
+screensDiv.addEventListener('change',e=>{
+  if(e.target.matches('input[type=radio]')){
+    e.target.closest('.screen').querySelector('.btn').disabled=false;
+  }
+});
+
+// ---------- 3. НАВИГАЦИЯ ---------- //
+function nextScreen(idx){
+  const sc=document.querySelectorAll('.screen');
+  sc[idx].classList.remove('active');
+  if(idx<questions.length-1){
+    sc[idx+1].classList.add('active');
+    updateBar((idx+1)/questions.length*100);
+  }else{
+    showResult();
+  }
+}
+function updateBar(pct){document.getElementById('bar').style.width=pct+'%';}
+
+// ---------- 4. ПОДБОР МЕТОДА ---------- //
+function showResult(){
+  const answers={};
+  questions.forEach(q=>{
+    const sel=document.querySelector(`input[name=${q.id}]:checked`);
+    answers[q.id]=sel?sel.value:null;
+  });
+  const scored=methods.map(m=>{
+    const s=Object.values(answers).reduce((acc,a)=>acc+(m.tags.includes(a)?1:0),0);
+    return {...m,score:s};
+  });
+  const max=Math.max(...scored.map(x=>x.score));
+  const best=scored.filter(x=>x.score===max);
+
+  const res=document.createElement('div');
+  res.className='screen active';
+  res.innerHTML=`<h2>Рекомендации (${max}/6 совпадений):</h2>`;
+  best.forEach(b=>{
+    res.insertAdjacentHTML('beforeend',
+      `<div class="result-card">
+        <strong>${b.name}</strong><br>
+        Совпадений: ${b.score}/6<br>
+        <a href="${b.url}" target="_blank" rel="noopener">Подробнее</a>
+      </div>`);
+  });
+  if(max<4){
+    res.insertAdjacentHTML('beforeend',
+      '<p>Нет полного совпадения — показаны оптимальные методы по выбранным параметрам.</p>');
+  }
+  screensDiv.replaceWith(res);
+  updateBar(100);
+}
+
+// Инициализация прогресс-бара
+updateBar(0);
 </script>
 </body>
 </html>
