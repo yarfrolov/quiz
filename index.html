@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Квиз: Выбор метода исследования для продакт-менеджера</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; padding: 0 1em; }
+    h1 { color: #2c3e50; }
+    label { display: block; margin: 1em 0 0.3em; font-weight: bold; }
+    select, button { width: 100%; padding: 0.4em; font-size: 1em; }
+    .result { background: #ecf0f1; padding: 1em; border-radius: 6px; margin-top: 1.5em; }
+    a { color: #2980b9; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Квиз: Выбор метода исследования для продакт-менеджера</h1>
+  <form id="quizForm">
+    <label for="goal">1. Какова основная цель исследования? (можно выбрать несколько)</label>
+    <select id="goal" multiple required>
+      <option value="Понять причины поведения">Понять причины поведения / найти идеи</option>
+      <option value="Сравнить варианты">Сравнить варианты / оценить решения</option>
+      <option value="Изучить рынок">Изучить рынок / конкурентов</option>
+      <option value="Измерить уровень">Измерить текущий уровень (удовлетворённость, метрики)</option>
+    </select>
+
+    <label for="focus">2. На чем фокусируется исследование? (можно выбрать несколько)</label>
+    <select id="focus" multiple required>
+      <option value="Функции">Функции, пользовательские задачи, интерфейс</option>
+      <option value="Понимание пользователей">Понимание пользователей: мотивации, боли</option>
+      <option value="Рынок">Рынок, бренд, конкуренты</option>
+    </select>
+
+    <label for="stage">3. На какой стадии продукт? (можно выбрать несколько)</label>
+    <select id="stage" multiple required>
+      <option value="Идея">Идея / концепт</option>
+      <option value="Прототип">Прототип / MVP</option>
+      <option value="Запущенный продукт">Запущенный продукт</option>
+      <option value="Зрелый продукт">Зрелый продукт</option>
+    </select>
+
+    <label for="dataType">4. Какие данные важны? (можно выбрать несколько)</label>
+    <select id="dataType" multiple required>
+      <option value="Количественные">Количественные (метрики, статистика)</option>
+      <option value="Качественные">Качественные (инсайты, поведение)</option>
+      <option value="Пока не знаю">Пока не знаю</option>
+    </select>
+
+    <label for="speed">5. Как быстро нужны результаты? (можно выбрать несколько)</label>
+    <select id="speed" multiple required>
+      <option value="Очень срочно">Очень срочно (дни)</option>
+      <option value="Быстро">В течение нескольких недель</option>
+      <option value="Можно ждать">Можно подождать (месяцы)</option>
+    </select>
+
+    <label for="budget">6. Бюджет для исследования? (можно выбрать несколько)</label>
+    <select id="budget" multiple required>
+      <option value="Минимальный">Минимальный (внутренние ресурсы)</option>
+      <option value="Средний">Средний (внешние респонденты)</option>
+      <option value="Высокий">Высокий (агентство, большие исследования)</option>
+    </select>
+
+    <button type="submit" style="margin-top:1em;">Получить рекомендации</button>
+  </form>
+
+  <div id="result" class="result" style="display:none;"></div>
+
+<script>
+// База методов с их параметрами и описаниями
+const researchMethods = [
+  {
+    name: "Глубинное интервью",
+    goal: ["Понять причины поведения", "Изучить рынок"],
+    focus: ["Понимание пользователей"],
+    stage: ["Идея", "Прототип", "Запущенный продукт"],
+    dataType: ["Качественные"],
+    speed: ["Быстро", "Можно ждать"],
+    budget: ["Средний", "Высокий"],
+    description: "Помогает глубоко понять мотивации, потребности и поведение пользователей.",
+    link: "https://usabilitylab.ru/uxmethods/glubinnoe-intervyu-in-depth-interview/"
+  },
+  {
+    name: "A/B тестирование",
+    goal: ["Сравнить варианты", "Измерить уровень"],
+    focus: ["Функции"],
+    stage: ["Запущенный продукт", "Зрелый продукт"],
+    dataType: ["Количественные"],
+    speed: ["Очень срочно", "Быстро"],
+    budget: ["Средний", "Высокий"],
+    description: "Сравнение вариантов продукта с целью выбрать оптимальный на основе метрик.",
+    link: "https://usabilitylab.ru/uxmethods/ab-testing-a-b-test/"
+  },
+  {
+    name: "Опросы",
+    goal: ["Измерить уровень", "Изучить рынок"],
+    focus: ["Понимание пользователей", "Рынок"],
+    stage: ["Прототип", "Запущенный продукт", "Зрелый продукт"],
+    dataType: ["Количественные"],
+    speed: ["Очень срочно", "Быстро", "Можно ждать"],
+    budget: ["Минимальный", "Средний", "Высокий"],
+    description: "Сбор статистических данных о пользователях, их предпочтениях и опыте.",
+    link: "https://usabilitylab.ru/uxmethods/surveys/"
+  },
+  {
+    name: "Фокус-группы",
+    goal: ["Понять причины поведения", "Изучить рынок"],
+    focus: ["Понимание пользователей", "Рынок"],
+    stage: ["Идея", "Прототип", "Запущенный продукт"],
+    dataType: ["Качественные"],
+    speed: ["Быстро", "Можно ждать"],
+    budget: ["Средний", "Высокий"],
+    description: "Групповое обсуждение для выявления мнений и идей пользователей.",
+    link: "https://usabilitylab.ru/uxmethods/focus-groups/"
+  },
+  {
+    name: "Экспертная оценка удобства",
+    goal: ["Понять причины поведения", "Измерить уровень"],
+    focus: ["Функции"],
+    stage: ["Запущенный продукт", "Зрелый продукт"],
+    dataType: ["Пока не знаю"],
+    speed: ["Очень срочно", "Быстро"],
+    budget: ["Минимальный", "Средний"],
+    description: "Оценка продукта экспертами для выявления проблем удобства интерфейса.",
+    link: "https://usabilitylab.ru/uxmethods/ekspertnaya-oczenka-udobstva-heuristic-evaluation-expert-review/"
+  },
+  // Добавляйте свои методы сюда по такому же шаблону
+];
+
+// Функция для получения выбранных значений из select с учетом multiple
+function getSelectedOptions(select) {
+  return Array.from(select.selectedOptions).map(opt => opt.value);
+}
+
+// Проверка пересечения массивов (есть ли хотя бы один общий элемент)
+function arraysIntersect(arr1, arr2) {
+  return arr1.some(item => arr2.includes(item));
+}
+
+document.getElementById('quizForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  // Считываем выбранные ответы
+  const goal = getSelectedOptions(document.getElementById('goal'));
+  const focus = getSelectedOptions(document.getElementById('focus'));
+  const stage = getSelectedOptions(document.getElementById('stage'));
+  const dataType = getSelectedOptions(document.getElementById('dataType'));
+  const speed = getSelectedOptions(document.getElementById('speed'));
+  const budget = getSelectedOptions(document.getElementById('budget'));
+
+  // Фильтруем методы, где есть пересечения по всем параметрам
+  // Особенность: метод с dataType "Пока не знаю" считается подходящим для любого выбора dataType
+  const matchedMethods = researchMethods.filter(method => {
+    const goalMatch = arraysIntersect(method.goal, goal);
+    const focusMatch = arraysIntersect(method.focus, focus);
+    const stageMatch = arraysIntersect(method.stage, stage);
+    const speedMatch = arraysIntersect(method.speed, speed);
+    const budgetMatch = arraysIntersect(method.budget, budget);
+    const dataTypeMatch = method.dataType.includes("Пока не знаю") || arraysIntersect(method.dataType, dataType);
+
+    return goalMatch && focusMatch && stageMatch && speedMatch && budgetMatch && dataTypeMatch;
+  });
+
+  const resultDiv = document.getElementById('result');
+
+  if (matchedMethods.length === 0) {
+    resultDiv.innerHTML = `<p>Подходящие методы не найдены. Попробуйте изменить параметры для получения рекомендаций.</p>`;
+  } else {
+    let resultHTML = `<h2>Рекомендуемые методы исследования:</h2><ul>`;
+    matchedMethods.forEach(method => {
+      resultHTML += `<li><strong>${method.name}</strong>: ${method.description} <a href="${method.link}" target="_blank" rel="noopener noreferrer">Подробнее</a></li>`;
+    });
+    resultHTML += `</ul>`;
+    resultDiv.innerHTML = resultHTML;
+  }
+  resultDiv.style.display = "block";
+  // Прокрутить страницу вниз к результату
+  resultDiv.scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
